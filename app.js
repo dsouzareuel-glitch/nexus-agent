@@ -230,17 +230,14 @@ class AppState {
             if (saved) {
                 const data = JSON.parse(saved);
                 this.conversations = data.conversations || [];
-                // Always apply built-in config first, then user overrides
-                // but keep the built-in API key if user hasn't set their own
                 const userSettings = data.settings || {};
-                this.settings = {
-                    ...BUILT_IN_CONFIG,
-                    ...userSettings,
-                    // Always fall back to built-in key if user hasn't set one
-                    apiKey: userSettings.apiKey || BUILT_IN_CONFIG.apiKey,
-                    provider: userSettings.provider || BUILT_IN_CONFIG.provider,
-                    model: userSettings.model || BUILT_IN_CONFIG.model
-                };
+                // If the user hasn't set their own API key, use ALL built-in defaults
+                // This prevents mixing a Groq key with a stale OpenAI provider from cache
+                if (!userSettings.apiKey) {
+                    this.settings = { ...BUILT_IN_CONFIG };
+                } else {
+                    this.settings = { ...BUILT_IN_CONFIG, ...userSettings };
+                }
             }
         } catch (e) {
             console.warn('Failed to load state:', e);
