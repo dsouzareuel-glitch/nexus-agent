@@ -229,15 +229,13 @@ class AppState {
             const saved = localStorage.getItem('nexus_state');
             if (saved) {
                 const data = JSON.parse(saved);
-                this.conversations = data.conversations || [];
-                const userSettings = data.settings || {};
-                // If the user hasn't set their own API key, use ALL built-in defaults
-                // This prevents mixing a Groq key with a stale OpenAI provider from cache
-                if (!userSettings.apiKey) {
-                    this.settings = { ...BUILT_IN_CONFIG };
-                } else {
-                    this.settings = { ...BUILT_IN_CONFIG, ...userSettings };
+                // Wipe any stale settings from old versions
+                if (data.settings) {
+                    delete data.settings;
+                    localStorage.setItem('nexus_state', JSON.stringify(data));
                 }
+                // Only restore conversations — settings always use BUILT_IN_CONFIG
+                this.conversations = data.conversations || [];
             }
         } catch (e) {
             console.warn('Failed to load state:', e);
@@ -246,9 +244,9 @@ class AppState {
 
     save() {
         try {
+            // Only save conversations — never settings
             localStorage.setItem('nexus_state', JSON.stringify({
-                conversations: this.conversations,
-                settings: this.settings
+                conversations: this.conversations
             }));
         } catch (e) {
             console.warn('Failed to save state:', e);
