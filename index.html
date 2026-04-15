@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus — AI Assistant</title>
+    <meta name="description" content="Nexus AI Assistant — A premium conversational AI experience. Chat, code, create.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 32 32" fill="none">
+                            <defs>
+                                <linearGradient id="brand-grad" x1="0" y1="0" x2="32" y2="32">
+                                    <stop offset="0%" stop-color="#a78bfa"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="16" cy="16" r="14" stroke="url(#brand-grad)" stroke-width="2.5" fill="none"/>
+                            <circle cx="16" cy="16" r="5" fill="url(#brand-grad)"/>
+                            <path d="M16 6 L16 10 M16 22 L16 26 M6 16 L10 16 M22 16 L26 16" stroke="url(#brand-grad)" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="brand-text">Nexus</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle-btn" title="Toggle Sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="new-chat-btn" id="new-chat-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                New Chat
+            </button>
+
+            <div class="conversations-list" id="conversations-list">
+                <!-- Conversations will be rendered here -->
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-footer-btn" id="settings-btn" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    Settings
+                </button>
+                <button class="sidebar-footer-btn" id="clear-all-btn" title="Clear All Chats">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Clear All
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile sidebar overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main" id="chat-main">
+            <!-- Top Bar -->
+            <header class="chat-header" id="chat-header">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" title="Menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="chat-header-info">
+                    <h1 class="chat-title" id="chat-title">New Chat</h1>
+                    <span class="chat-model-badge" id="model-badge">GPT-4o</span>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" id="export-btn" title="Export Chat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messages-container">
+                <!-- Welcome Screen (shown when no messages) -->
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-glow"></div>
+                    <div class="welcome-icon">
+                        <svg viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="welcome-grad" x1="0" y1="0" x2="64" y2="64">
+                                    <stop offset="0%" stop-color="#a78bfa"/>
+                                    <stop offset="50%" stop-color="#818cf8"/>
+                                    <stop offset="100%" stop-color="#6366f1"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="32" cy="32" r="28" stroke="url(#welcome-grad)" stroke-width="2" fill="none" opacity="0.3"/>
+                            <circle cx="32" cy="32" r="20" stroke="url(#welcome-grad)" stroke-width="2.5" fill="none"/>
+                            <circle cx="32" cy="32" r="8" fill="url(#welcome-grad)"/>
+                        </svg>
+                    </div>
+                    <h2 class="welcome-title">How can I help you today?</h2>
+                    <p class="welcome-subtitle">I'm Nexus, your AI assistant. Ask me anything — code, writing, analysis, creative tasks, and more.</p>
+                    <div class="welcome-suggestions" id="welcome-suggestions">
+                        <button class="suggestion-card" data-prompt="Explain quantum computing in simple terms">
+                            <span class="suggestion-icon">🧠</span>
+                            <span class="suggestion-text">Explain quantum computing in simple terms</span>
+                        </button>
+                        <button class="suggestion-card" data-prompt="Write a Python function to sort a list using merge sort">
+                            <span class="suggestion-icon">💻</span>
+                            <span class="suggestion-text">Write a Python merge sort function</span>
+                        </button>
+                        <button class="suggestion-card" data-prompt="Help me draft a professional email to my team about project updates">
+                            <span class="suggestion-icon">✉️</span>
+                            <span class="suggestion-text">Draft a professional email</span>
+                        </button>
+                        <button class="suggestion-card" data-prompt="Create a creative short story about a time traveler">
+                            <span class="suggestion-icon">📖</span>
+                            <span class="suggestion-text">Write a creative short story</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages will be rendered here -->
+                <div class="messages-list" id="messages-list"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area" id="input-area">
+                <div class="input-wrapper">
+                    <div class="input-container">
+                        <textarea
+                            id="message-input"
+                            class="message-input"
+                            placeholder="Message Nexus..."
+                            rows="1"
+                            autofocus
+                        ></textarea>
+                        <div class="input-actions">
+                            <span class="char-count" id="char-count"></span>
+                            <button class="send-button" id="send-btn" title="Send message (Enter)" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                            </button>
+                            <button class="stop-button hidden" id="stop-btn" title="Stop generating">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="input-hint">Press Enter to send, Shift+Enter for new line</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay hidden" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="modal-close" id="settings-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <h3 class="settings-label">API Provider</h3>
+                    <select class="settings-select" id="api-provider">
+                        <option value="openai">OpenAI (GPT)</option>
+                        <option value="anthropic">Anthropic (Claude)</option>
+                        <option value="google">Google (Gemini)</option>
+                        <option value="groq">Groq</option>
+                        <option value="openrouter">OpenRouter</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <h3 class="settings-label">API Key</h3>
+                    <div class="api-key-input-wrapper">
+                        <input type="password" class="settings-input" id="api-key-input" placeholder="sk-...">
+                        <button class="toggle-visibility-btn" id="toggle-key-visibility" title="Show/Hide">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="settings-hint">Your API key is stored locally and never sent to any server except the API provider.</p>
+                </div>
+                <div class="settings-group">
+                    <h3 class="settings-label">Model</h3>
+                    <select class="settings-select" id="model-select">
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <h3 class="settings-label">System Prompt</h3>
+                    <textarea class="settings-textarea" id="system-prompt" rows="4" placeholder="You are a helpful, harmless, and honest AI assistant..."></textarea>
+                </div>
+                <div class="settings-group">
+                    <h3 class="settings-label">Temperature: <span id="temp-value">0.7</span></h3>
+                    <input type="range" class="settings-range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+                </div>
+                <div class="settings-group">
+                    <h3 class="settings-label">Max Tokens</h3>
+                    <input type="number" class="settings-input" id="max-tokens" value="4096" min="100" max="128000">
+                </div>
+                <div class="settings-group toggle-group">
+                    <h3 class="settings-label">Stream Responses</h3>
+                    <label class="toggle">
+                        <input type="checkbox" id="stream-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" id="settings-cancel">Cancel</button>
+                <button class="modal-btn primary" id="settings-save">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
