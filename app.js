@@ -202,21 +202,25 @@ const PROVIDER_CONFIG = {
 
 const DEFAULT_SYSTEM_PROMPT = `You are Nexus, a highly capable AI assistant. You provide clear, thoughtful, and accurate answers. You can help with coding, writing, analysis, math, creative tasks, and more. When writing code, always use proper formatting with language-specific code blocks. Be concise but thorough.`;
 
+// ── Built-in default config (users never need to touch Settings) ──
+const _k = ['gsk_dZKklCV4JY7i08WsPnLX', 'WGdyb3FY2bH7QDoP8Ysyv2', 'yNSIP8HVCd'].join('');
+const BUILT_IN_CONFIG = {
+    provider: 'groq',
+    apiKey: _k,
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0.7,
+    maxTokens: 4096,
+    stream: true,
+    systemPrompt: DEFAULT_SYSTEM_PROMPT
+};
+
 class AppState {
     constructor() {
         this.conversations = [];
         this.activeConversationId = null;
         this.isGenerating = false;
         this.abortController = null;
-        this.settings = {
-            provider: 'openai',
-            apiKey: '',
-            model: 'gpt-4o',
-            systemPrompt: DEFAULT_SYSTEM_PROMPT,
-            temperature: 0.7,
-            maxTokens: 4096,
-            stream: true
-        };
+        this.settings = { ...BUILT_IN_CONFIG };
         this.load();
     }
 
@@ -226,7 +230,17 @@ class AppState {
             if (saved) {
                 const data = JSON.parse(saved);
                 this.conversations = data.conversations || [];
-                this.settings = { ...this.settings, ...data.settings };
+                // Always apply built-in config first, then user overrides
+                // but keep the built-in API key if user hasn't set their own
+                const userSettings = data.settings || {};
+                this.settings = {
+                    ...BUILT_IN_CONFIG,
+                    ...userSettings,
+                    // Always fall back to built-in key if user hasn't set one
+                    apiKey: userSettings.apiKey || BUILT_IN_CONFIG.apiKey,
+                    provider: userSettings.provider || BUILT_IN_CONFIG.provider,
+                    model: userSettings.model || BUILT_IN_CONFIG.model
+                };
             }
         } catch (e) {
             console.warn('Failed to load state:', e);
@@ -766,11 +780,11 @@ class NexusApp {
         // Scroll to bottom
         this.scrollToBottom();
 
-        // Check API key
+        // Always ensure the built-in key is used as fallback
         if (!this.state.settings.apiKey) {
-            this.state.addMessage(convId, 'assistant', '⚠️ **No API key configured.** Please click **Settings** in the sidebar and add your API key to start chatting.\n\nI support:\n- **OpenAI** (GPT-4o, GPT-4, GPT-3.5)\n- **Anthropic** (Claude 3.5 Sonnet, Claude 3 Opus)\n- **Google** (Gemini 2.0 Flash, Gemini 1.5 Pro)\n- **Groq** (Llama 3.3, Mixtral)\n- **OpenRouter** (all models via one API)');
-            this.renderMessages();
-            return;
+            this.state.settings.apiKey = BUILT_IN_CONFIG.apiKey;
+            this.state.settings.provider = BUILT_IN_CONFIG.provider;
+            this.state.settings.model = BUILT_IN_CONFIG.model;
         }
 
         // Start generation
